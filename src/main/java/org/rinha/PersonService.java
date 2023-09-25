@@ -12,26 +12,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-/* * Copyright (c) - UOL Inc,
- * Todos os direitos reservados
- *
- * Este arquivo e uma propriedade confidencial do Universo Online Inc.
- * Nenhuma parte do mesmo pode ser copiada, reproduzida, impressa ou
- * transmitida por qualquer meio sem autorização expressa e por escrito
- * de um representante legal do Universo Online Inc.
- *
- * All rights reserved
- *
- * This file is a confidential property of Universo Online Inc.
- * No part of this file may be reproduced or copied in any form or by
- * any means without written permission from an authorized person from
- * Universo Online Inc.
- *
- * Histórico de revisões
- * Autor Data Motivo
- * --------------------------------- ---------- -----------------------
- * phcassiano 22/09/2023 Criacao inicial
- */
 @ApplicationScoped
 public class PersonService
 {
