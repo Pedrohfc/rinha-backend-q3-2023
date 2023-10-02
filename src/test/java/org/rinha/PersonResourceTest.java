@@ -26,13 +26,18 @@ class PersonResourceTest
 
     private void shouldReturn422()
     {
+        shouldReturn(422);
+    }
+
+    private void shouldReturn(int statusCode)
+    {
         given()
                 .body(person)
                 .contentType("application/json")
                 .when()
                 .post("/pessoas")
                 .then()
-                .statusCode(422);
+                .statusCode(statusCode);
     }
 
     @Test
@@ -74,5 +79,11 @@ class PersonResourceTest
     {
         person.setStack(List.of("a string with 33 characteres #--#"));
         shouldReturn422();
+    }
+
+    @Test
+    void postPerson()
+    {
+        shouldReturn(201);
     }
 }

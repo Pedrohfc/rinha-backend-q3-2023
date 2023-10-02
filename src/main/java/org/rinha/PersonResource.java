@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jboss.logging.Logger;
 import org.rinha.model.Person;
 
 import java.net.URI;
@@ -12,6 +13,8 @@ import java.util.UUID;
 @Path("/pessoas")
 public class PersonResource
 {
+    private static final Logger LOG = Logger.getLogger(PersonResource.class);
+
     @Inject
     PersonService personService;
 
@@ -29,7 +32,8 @@ public class PersonResource
         }
         catch (Exception ex)
         {
-            ex.printStackTrace();
+            //ex.printStackTrace();
+            LOG.error(ex.getMessage(), ex);
             return Response.status(422).build();
         }
     }
