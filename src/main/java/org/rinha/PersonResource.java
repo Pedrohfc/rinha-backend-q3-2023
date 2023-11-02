@@ -32,9 +32,8 @@ public class PersonResource
         }
         catch (Exception ex)
         {
-            //ex.printStackTrace();
             LOG.error(ex.getMessage(), ex);
-            return Response.status(422).build();
+            return Response.status(422).entity("").build();
         }
     }
 

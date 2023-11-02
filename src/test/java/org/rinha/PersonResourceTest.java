@@ -1,11 +1,15 @@
 package org.rinha;
 
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.rinha.model.Person;
 
 import java.util.List;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 
@@ -18,21 +22,21 @@ class PersonResourceTest
     void setUp()
     {
         person = new Person();
-        person.setApelido("farofa");
+        person.setApelido(UUID.randomUUID().toString().replaceAll("-", ""));
         person.setNome("Pedro");
         person.setNascimento("1996-06-22");
-        person.setStack(List.of("JAVA"));
+        person.setStack(List.of("JAVA", "C++", "Javascript"));
     }
 
-    private void shouldReturn422()
+    private void postPersonShouldReturn(int statusCode)
     {
-        shouldReturn(422);
+        postPersonShouldReturn(statusCode, person);
     }
 
-    private void shouldReturn(int statusCode)
+    private static void postPersonShouldReturn(int statusCode, Object json)
     {
         given()
-                .body(person)
+                .body(json)
                 .contentType("application/json")
                 .when()
                 .post("/pessoas")
@@ -47,7 +51,7 @@ class PersonResourceTest
         for (String nickName : invalidNickName)
         {
             person.setApelido(nickName);
-            shouldReturn422();
+            postPersonShouldReturn(422);
         }
     }
 
@@ -59,7 +63,7 @@ class PersonResourceTest
         for (String name : invalidName)
         {
             person.setNome(name);
-            shouldReturn422();
+            postPersonShouldReturn(422);
         }
     }
 
@@ -70,7 +74,7 @@ class PersonResourceTest
         for (String date : invalidDates)
         {
             person.setNascimento(date);
-            shouldReturn422();
+            postPersonShouldReturn(422);
         }
     }
 
@@ -78,12 +82,43 @@ class PersonResourceTest
     void postPersonWithInvalidStack_shouldReturn422()
     {
         person.setStack(List.of("a string with 33 characteres #--#"));
-        shouldReturn422();
+        postPersonShouldReturn(422);
     }
 
     @Test
     void postPerson()
     {
-        shouldReturn(201);
+        postPersonShouldReturn(201);
+    }
+
+    @Test
+    void postPersonWithDuplicatedNickName_shouldReturn422()
+    {
+        postPersonShouldReturn(201);
+        postPersonShouldReturn(422);
+    }
+
+    @Test
+    void postPersonWithNameInvalidSyntax_shouldReturn400()
+    {
+        JsonObject json = Json.createObjectBuilder()
+                .add("nome", 1)
+                .add("apelido", person.getApelido())
+                .add("nascimento", person.getNascimento())
+                .add("stack", Json.createArrayBuilder(person.getStack()))
+                .build();
+        postPersonShouldReturn(400, json.toString());
+    }
+
+    @Test
+    void postPersonWithStackInvalidSyntax_shouldReturn400()
+    {
+        JsonObject json = Json.createObjectBuilder()
+                .add("nome", person.getNome())
+                .add("apelido", person.getApelido())
+                .add("nascimento", person.getNascimento())
+                .add("stack", Json.createArrayBuilder(List.of("JAVA", 1)))
+                .build();
+        postPersonShouldReturn(400, json.toString());
     }
 }
