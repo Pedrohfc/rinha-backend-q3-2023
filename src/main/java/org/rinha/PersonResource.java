@@ -8,6 +8,7 @@ import org.jboss.logging.Logger;
 import org.rinha.model.Person;
 
 import java.net.URI;
+import java.sql.SQLException;
 import java.util.UUID;
 
 @Path("/pessoas")
@@ -42,5 +43,16 @@ public class PersonResource
     public Person getPessoas()
     {
         return new Person();
+    }
+
+    @GET()
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPerson(@PathParam("id") String uuid) throws SQLException
+    {
+        Person person = personService.findPerson(uuid);
+        if (person != null)
+            return Response.ok(person).build();
+        return Response.status(404).build();
     }
 }

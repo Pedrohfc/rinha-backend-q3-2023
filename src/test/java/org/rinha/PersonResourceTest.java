@@ -1,13 +1,17 @@
 package org.rinha;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.response.Response;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.hamcrest.Matchers;
+import org.hamcrest.text.MatchesPattern;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.rinha.model.Person;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,13 +39,18 @@ class PersonResourceTest
 
     private static void postPersonShouldReturn(int statusCode, Object json)
     {
-        given()
+        postPerson(json)
+                .then()
+                .statusCode(statusCode);
+    }
+
+    private static Response postPerson(Object json)
+    {
+        return given()
                 .body(json)
                 .contentType("application/json")
                 .when()
-                .post("/pessoas")
-                .then()
-                .statusCode(statusCode);
+                .post("/pessoas");
     }
 
     @Test
@@ -70,7 +79,7 @@ class PersonResourceTest
     @Test
     void postPersonWithInvalidBirthDate_shouldReturn422()
     {
-        String[] invalidDates = {"", null, "abc", "22/06/1996", "1996-13-01", "1996-12-50"};
+        String[] invalidDates = { "", null, "abc", "22/06/1996", "1996-13-01", "1996-12-50" };
         for (String date : invalidDates)
         {
             person.setNascimento(date);
@@ -86,9 +95,12 @@ class PersonResourceTest
     }
 
     @Test
-    void postPerson()
+    void postPerson_shoulReturn201AndLocationHeader()
     {
-        postPersonShouldReturn(201);
+        postPerson(person)
+                .then()
+                .statusCode(201)
+                .header("Location", MatchesPattern.matchesPattern("https?://.+/pessoas/.+"));
     }
 
     @Test
@@ -120,5 +132,30 @@ class PersonResourceTest
                 .add("stack", Json.createArrayBuilder(List.of("JAVA", 1)))
                 .build();
         postPersonShouldReturn(400, json.toString());
+    }
+
+    @Test
+    void getPostedPerson()
+    {
+        Response response = postPerson(person);
+        String location = response.header("Location");
+        given()
+                .get(URI.create(location))
+                .then()
+                .statusCode(200)
+                .body("id", Matchers.equalTo(location.split("/")[4]))
+                .body("nome", Matchers.equalTo(person.getNome()))
+                .body("nascimento", Matchers.equalTo(person.getNascimento()))
+                .body("stack", Matchers.equalTo(person.getStack()))
+                .body("apelido", Matchers.equalTo(person.getApelido()));
+    }
+
+    @Test
+    void getPersonWithInvalidId_shouldReturn404()
+    {
+        given()
+                .get("/pessoas/" + UUID.randomUUID())
+                .then()
+                .statusCode(404);
     }
 }
