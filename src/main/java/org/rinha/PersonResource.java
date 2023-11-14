@@ -40,9 +40,13 @@ public class PersonResource
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Person getPessoas()
+    public Response searchPerson(@QueryParam("t") String query) throws SQLException
     {
-        return new Person();
+        if (query == null || query.equals(""))
+        {
+            return Response.status(400).build();
+        }
+        return Response.ok(personService.searchPerson(query)).build();
     }
 
     @GET()

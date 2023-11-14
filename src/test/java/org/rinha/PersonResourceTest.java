@@ -158,4 +158,13 @@ class PersonResourceTest
                 .then()
                 .statusCode(404);
     }
+
+    @Test
+    void searchWithoutT_shouldReturn400()
+    {
+        given()
+                .get("/pessoas")
+                .then()
+                .statusCode(400);
+    }
 }

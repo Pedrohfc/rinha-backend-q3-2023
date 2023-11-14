@@ -13,17 +13,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
 public class PersonService
 {
 
-    public static final String PERSON_FIELDS = "person_id, nick_name, name, birth_date, stack";
+    public static final String PERSON_VALUES = "nick_name, name, birth_date, stack";
 
-    public static final String INSERT_PERSON = "INSERT INTO person (" + PERSON_FIELDS + ") values (UUID_TO_BIN(?), ?, ?, ?, ?)";
+    public static final String PERSON_FIELDS = "BIN_TO_UUID(person_id) as person_uuid, " + PERSON_VALUES;
+
+    public static final String INSERT_PERSON = "INSERT INTO person (person_id," + PERSON_VALUES + ") values (UUID_TO_BIN(?), ?, ?, ?, ?)";
 
     public static final String SELECT_PERSON = "SELECT " + PERSON_FIELDS + " FROM person WHERE person_id = UUID_TO_BIN(?)";
+
+    public static final String SEARCH_PERSON = "SELECT " + PERSON_FIELDS + " FROM person WHERE MATCH(name,nick_name,stack) AGAINST (?) LIMIT 50";
 
     @Inject
     private DataSource dataSource;
@@ -61,16 +66,39 @@ public class PersonService
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next())
                 {
-                    Person person = new Person();
-                    person.setId(personId);
-                    person.setNome(rs.getString("name"));
-                    person.setApelido(rs.getString("nick_name"));
-                    person.setNascimento(rs.getString("birth_date"));
-                    person.setStack(List.of(rs.getString("stack").split(";")));
-                    return person;
+                    return parserPerson(rs);
                 }
             }
         }
         return null;
+    }
+
+    private static Person parserPerson(ResultSet rs) throws SQLException
+    {
+        Person person = new Person();
+        person.setId(rs.getString("person_uuid"));
+        person.setNome(rs.getString("name"));
+        person.setApelido(rs.getString("nick_name"));
+        person.setNascimento(rs.getString("birth_date"));
+        person.setStack(List.of(rs.getString("stack").split(";")));
+        return person;
+    }
+
+    public List<Person> searchPerson(String query) throws SQLException
+    {
+        List<Person> personList = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection())
+        {
+            try (PreparedStatement stmt = conn.prepareStatement(SEARCH_PERSON))
+            {
+                stmt.setString(1, query);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next())
+                {
+                    personList.add(parserPerson(rs));
+                }
+            }
+        }
+        return personList;
     }
 }

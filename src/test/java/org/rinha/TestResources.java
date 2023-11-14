@@ -29,4 +29,10 @@ public class TestResources
 
         return uuidBin;
     }
+
+    public static String binToUuid(byte[] bytes)
+    {
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        return new UUID(buffer.getLong(), buffer.getLong()).toString();
+    }
 }
