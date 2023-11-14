@@ -11,7 +11,7 @@ import java.net.URI;
 import java.sql.SQLException;
 import java.util.UUID;
 
-@Path("/pessoas")
+@Path("/")
 public class PersonResource
 {
     private static final Logger LOG = Logger.getLogger(PersonResource.class);
@@ -20,6 +20,7 @@ public class PersonResource
     PersonService personService;
 
     @POST
+    @Path("/pessoas")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response postPerson(Person person)
@@ -39,6 +40,7 @@ public class PersonResource
     }
 
     @GET
+    @Path("/pessoas")
     @Produces(MediaType.APPLICATION_JSON)
     public Response searchPerson(@QueryParam("t") String query) throws SQLException
     {
@@ -50,7 +52,7 @@ public class PersonResource
     }
 
     @GET()
-    @Path("{id}")
+    @Path("/pessoas/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPerson(@PathParam("id") String uuid) throws SQLException
     {
@@ -58,5 +60,13 @@ public class PersonResource
         if (person != null)
             return Response.ok(person).build();
         return Response.status(404).build();
+    }
+
+    @GET
+    @Path("/contagem-pessoas")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response countPerson()
+    {
+        return Response.ok(personService.countPerson()).build();
     }
 }

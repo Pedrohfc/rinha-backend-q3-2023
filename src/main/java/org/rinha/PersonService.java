@@ -101,4 +101,21 @@ public class PersonService
         }
         return personList;
     }
+
+    public Integer countPerson() throws SQLException
+    {
+        try (Connection conn = dataSource.getConnection())
+        {
+            try (PreparedStatement stmt = conn.prepareStatement("SELECT count(person_id) as total_person from person"))
+            {
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next())
+                {
+                    return rs.getInt("total_person");
+                }
+            }
+        }
+
+        return -1;
+    }
 }

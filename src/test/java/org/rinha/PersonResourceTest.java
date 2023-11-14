@@ -6,7 +6,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.hamcrest.Matchers;
 import org.hamcrest.text.MatchesPattern;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.rinha.model.Person;
@@ -16,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
 class PersonResourceTest
@@ -166,5 +166,23 @@ class PersonResourceTest
                 .get("/pessoas")
                 .then()
                 .statusCode(400);
+    }
+
+    @Test
+    void countPerson_shouldIncrementWhenPostPerson()
+    {
+        Integer countBefore = getCount();
+        postPerson(person);
+        Integer countNow = getCount();
+        assertEquals(countBefore + 1, countNow);
+    }
+
+    private static Integer getCount()
+    {
+        return Integer.valueOf(
+                given()
+                        .get("/contagem-pessoas")
+                        .body()
+                        .asString());
     }
 }
